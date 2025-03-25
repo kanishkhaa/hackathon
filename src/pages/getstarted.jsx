@@ -6,7 +6,7 @@ const Welcome = () => {
   const navigate = useNavigate(); 
 
   const handleGetStarted = () => {
-    navigate("/home"); 
+    navigate("/form"); 
   };
   const containerStyle = {
     position: 'relative',
@@ -24,10 +24,10 @@ const Welcome = () => {
     <div style={containerStyle}>
       <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center text-white p-6">
         <h1 className="text-4xl font-bold mb-4">
-          Next-Gen AI-Powered Perpetuals Trading DApp
+        AI-Powered Prescription Management Platform
         </h1>
         <p className="mb-6 text-lg">
-          Trade with confidence! Our cutting-edge AI dynamically hedges positions, auto-adjusts leverage, and deploys real-time liquidation prevention strategies—maximizing profits while minimizing risks.
+        Manage your medications safely and smartly! Our AI-driven platform offers intelligent prescription scanning, automatic drug interaction checks, and comprehensive health insights—ensuring medication safety and peace of mind.
         </p>
         <button 
          onClick={handleGetStarted} 
