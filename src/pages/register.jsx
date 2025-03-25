@@ -1,7 +1,10 @@
 import React, { useState, useRef } from 'react';
 import { Info, Upload, CheckCircle, AlertCircle } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+
 
 const Form = () => {
+  const navigate = useNavigate(); 
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
@@ -116,14 +119,14 @@ const Form = () => {
     setFormSubmitted(true);
     
     setTimeout(() => {
-        navigate('/dashboard', { 
-          state: { 
-            formData: formData,
-            registrationSuccessful: true 
-          } 
-        });
-      }, 1000);
-    };
+      navigate('/dashboard', { 
+        state: { 
+          formData: formData,
+          registrationSuccessful: true 
+        } 
+      });
+    }, 2000); // Increased to 2 seconds so user can see success message
+  };
 
   return (
     <div className="min-h-screen w-full bg-gradient-to-br from-[#1A2B3C] to-[#2C3E50] flex items-center justify-center p-4">
@@ -132,7 +135,7 @@ const Form = () => {
           <div className="text-center text-white space-y-4">
             <CheckCircle className="mx-auto text-green-400" size={64} />
             <h2 className="text-3xl font-bold">Registration Successful!</h2>
-            <p className="text-gray-300">Your information has been securely submitted.</p>
+            <p className="text-gray-300">Redirecting to dashboard...</p>
           </div>
         ) : (
           <>
