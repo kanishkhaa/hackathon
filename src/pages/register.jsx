@@ -61,31 +61,6 @@ const Form = () => {
     }
   };
 
-  const handlePrescriptionImageUpload = (event) => {
-    const file = event.target.files[0];
-    if (file) {
-      // File size validation (5MB limit)
-      if (file.size > 5 * 1024 * 1024) {
-        setFormErrors(prev => ({
-          ...prev,
-          prescriptionImage: 'File size should not exceed 5MB'
-        }));
-        return;
-      }
-
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setFormData(prevState => ({
-          ...prevState,
-          prescriptionImage: {
-            file: file,
-            preview: reader.result
-          }
-        }));
-      };
-      reader.readAsDataURL(file);
-    }
-  };
 
   const validateForm = () => {
     const errors = {};
@@ -140,11 +115,15 @@ const Form = () => {
     console.log('Complete Form Data:', formData);
     setFormSubmitted(true);
     
-    // Simulate form submission 
     setTimeout(() => {
-      setFormSubmitted(false);
-    }, 3000);
-  };
+        navigate('/dashboard', { 
+          state: { 
+            formData: formData,
+            registrationSuccessful: true 
+          } 
+        });
+      }, 1000);
+    };
 
   return (
     <div className="min-h-screen w-full bg-gradient-to-br from-[#1A2B3C] to-[#2C3E50] flex items-center justify-center p-4">
@@ -390,55 +369,6 @@ const Form = () => {
                 {formErrors.notificationPreferences && (
                   <p className="text-red-400 text-sm mt-1 flex items-center">
                     <AlertCircle size={16} className="mr-2" /> {formErrors.notificationPreferences}
-                  </p>
-                )}
-              </div>
-
-              {/* Prescription Upload */}
-              <div className="mt-6 bg-white/10 p-6 rounded-xl border border-white/20">
-                <div 
-                  className="border-2 border-dashed border-white/30 rounded-xl p-6 text-center cursor-pointer hover:border-blue-500 transition duration-300"
-                  onClick={() => fileInputRef.current.click()}
-                >
-                  <input 
-                    type="file" 
-                    ref={fileInputRef}
-                    onChange={handlePrescriptionImageUpload}
-                    accept="image/jpeg,image/png,image/jpg,image/gif"
-                    className="hidden"
-                  />
-                  
-                  {!formData.prescriptionImage ? (
-                    <div className="text-gray-400">
-                      <Upload className="mx-auto mb-4 text-white" size={48} />
-                      <p className="text-white font-medium">Upload Prescription</p>
-                      <p className="text-sm text-gray-400 mt-2">
-                        Drag & Drop or Click to Upload (Max 5MB)
-                      </p>
-                    </div>
-                  ) : (
-                    <div className="relative">
-                      <img 
-                        src={formData.prescriptionImage.preview} 
-                        alt="Prescription Preview" 
-                        className="max-w-full max-h-64 mx-auto rounded-lg object-contain"
-                      />
-                      <button 
-                        type="button" 
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setFormData(prev => ({...prev, prescriptionImage: null}));
-                        }}
-                        className="absolute top-2 right-2 bg-red-500/80 text-white p-2 rounded-full hover:bg-red-600 transition"
-                      >
-                        ✕
-                      </button>
-                    </div>
-                  )}
-                </div>
-                {formErrors.prescriptionImage && (
-                  <p className="text-red-400 text-sm mt-1 flex items-center">
-                    <AlertCircle size={16} className="mr-2" /> {formErrors.prescriptionImage}
                   </p>
                 )}
               </div>
