@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import { Info, Upload, CheckCircle, AlertCircle } from 'lucide-react';
 
 const Form = () => {
   const [formData, setFormData] = useState({
@@ -14,22 +15,25 @@ const Form = () => {
     prescriptionImage: null,
   });
 
+  const [formErrors, setFormErrors] = useState({});
+  const [formSubmitted, setFormSubmitted] = useState(false);
   const fileInputRef = useRef(null);
 
   const medicalConditions = [
     'Diabetes', 'Hypertension', 'Asthma', 
-    'Heart Disease', 'Arthritis'
+    'Heart Disease', 'Arthritis', 'Cancer',
+    'Epilepsy', 'Kidney Disease', 'Liver Disease'
   ];
 
   const languages = [
     'English', 'Spanish', 'French', 
-    'German', 'Mandarin', 'Arabic'
+    'German', 'Mandarin', 'Arabic',
+    'Portuguese', 'Russian', 'Hindi'
   ];
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
 
-    // Handle checkboxes and multi-select
     if (type === 'checkbox') {
       setFormData(prevState => {
         if (name === 'notificationPreferences' || name === 'existingMedicalConditions') {
@@ -46,11 +50,29 @@ const Form = () => {
         [name]: value
       }));
     }
+
+    // Clear specific field error when user starts typing/selecting
+    if (formErrors[name]) {
+      setFormErrors(prev => {
+        const newErrors = {...prev};
+        delete newErrors[name];
+        return newErrors;
+      });
+    }
   };
 
   const handlePrescriptionImageUpload = (event) => {
     const file = event.target.files[0];
     if (file) {
+      // File size validation (5MB limit)
+      if (file.size > 5 * 1024 * 1024) {
+        setFormErrors(prev => ({
+          ...prev,
+          prescriptionImage: 'File size should not exceed 5MB'
+        }));
+        return;
+      }
+
       const reader = new FileReader();
       reader.onloadend = () => {
         setFormData(prevState => ({
@@ -65,243 +87,375 @@ const Form = () => {
     }
   };
 
+  const validateForm = () => {
+    const errors = {};
+
+    // Validation rules
+    if (!formData.fullName.trim()) {
+      errors.fullName = 'Full Name is required';
+    }
+
+    if (!formData.email.trim()) {
+      errors.email = 'Email is required';
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      errors.email = 'Email is invalid';
+    }
+
+    if (!formData.phoneNumber.trim()) {
+      errors.phoneNumber = 'Phone Number is required';
+    } else if (!/^\+?[1-9]\d{1,14}$/.test(formData.phoneNumber)) {
+      errors.phoneNumber = 'Invalid phone number';
+    }
+
+    if (!formData.dateOfBirth) {
+      errors.dateOfBirth = 'Date of Birth is required';
+    }
+
+    if (!formData.gender) {
+      errors.gender = 'Gender is required';
+    }
+
+    if (!formData.languagePreference) {
+      errors.languagePreference = 'Language Preference is required';
+    }
+
+    if (formData.notificationPreferences.length === 0) {
+      errors.notificationPreferences = 'Select at least one notification preference';
+    }
+
+    return errors;
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
+    
+    // Validate form
+    const validationErrors = validateForm();
+    
+    if (Object.keys(validationErrors).length > 0) {
+      setFormErrors(validationErrors);
+      return;
+    }
+
     console.log('Complete Form Data:', formData);
+    setFormSubmitted(true);
+    
+    // Simulate form submission 
+    setTimeout(() => {
+      setFormSubmitted(false);
+    }, 3000);
   };
 
   return (
-    <div className="min-h-screen w-full bg-gray-900 flex items-center justify-center p-4">
-    <div className="bg-[#1E2A3A] rounded-xl shadow-lg w-full max-w-4xl p-8">
-      <h2 className="text-3xl font-bold text-white mb-6 text-center">
-        User Registration & Prescription
-      </h2>
-        
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* User Details Section */}
-          <div className="grid grid-cols-2 gap-4">
-            {/* Full Name */}
-            <div>
-              <label className="block text-gray-300 mb-2">
-                Full Name *
-              </label>
-              <input
-                type="text"
-                name="fullName"
-                value={formData.fullName}
-                onChange={handleChange}
-                className="w-full px-3 py-2 bg-gray-800 text-white border border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
-              />
-            </div>
-
-            {/* Email */}
-            <div>
-              <label className="block text-gray-300 mb-2">
-                Email Address *
-              </label>
-              <input
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                className="w-full px-3 py-2 bg-gray-800 text-white border border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
-              />
-            </div>
-
-            {/* Phone Number */}
-            <div>
-              <label className="block text-gray-300 mb-2">
-                Phone Number *
-              </label>
-              <input
-                type="tel"
-                name="phoneNumber"
-                value={formData.phoneNumber}
-                onChange={handleChange}
-                className="w-full px-3 py-2 bg-gray-800 text-white border border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
-              />
-            </div>
-
-            {/* Date of Birth */}
-            <div>
-              <label className="block text-gray-300 mb-2">
-                Date of Birth *
-              </label>
-              <input
-                type="date"
-                name="dateOfBirth"
-                value={formData.dateOfBirth}
-                onChange={handleChange}
-                className="w-full px-3 py-2 bg-gray-800 text-white border border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
-              />
-            </div>
-
-            {/* Gender */}
-            <div>
-              <label className="block text-gray-300 mb-2">
-                Gender *
-              </label>
-              <select
-                name="gender"
-                value={formData.gender}
-                onChange={handleChange}
-                className="w-full px-3 py-2 bg-gray-800 text-white border border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
-              >
-                <option value="">Select Gender</option>
-                <option value="male">Male</option>
-                <option value="female">Female</option>
-                <option value="other">Other</option>
-              </select>
-            </div>
-
-            {/* Existing Medical Conditions */}
-            <div>
-              <label className="block text-gray-300 mb-2">
-                Existing Medical Conditions
-              </label>
-              <div className="bg-gray-800 p-2 rounded-md max-h-28 overflow-y-auto">
-                {medicalConditions.map((condition) => (
-                  <div key={condition} className="flex items-center mb-1">
-                    <input
-                      type="checkbox"
-                      id={condition}
-                      name="existingMedicalConditions"
-                      value={condition}
-                      checked={formData.existingMedicalConditions.includes(condition)}
-                      onChange={handleChange}
-                      className="mr-2 text-blue-500"
-                    />
-                    <label htmlFor={condition} className="text-gray-300">
-                      {condition}
-                    </label>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Allergies */}
-            <div>
-              <label className="block text-gray-300 mb-2">
-                Allergies
-              </label>
-              <input
-                type="text"
-                name="allergies"
-                value={formData.allergies}
-                onChange={handleChange}
-                placeholder="List any allergies"
-                className="w-full px-3 py-2 bg-gray-800 text-white border border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-
-            {/* Notification Preferences */}
-            <div>
-              <label className="block text-gray-300 mb-2">
-                Notification Preferences *
-              </label>
-              <div className="bg-gray-800 p-2 rounded-md">
-                {['SMS', 'Email', 'App'].map((pref) => (
-                  <div key={pref} className="flex items-center mb-1">
-                    <input
-                      type="checkbox"
-                      id={pref}
-                      name="notificationPreferences"
-                      value={pref.toLowerCase()}
-                      checked={formData.notificationPreferences.includes(pref.toLowerCase())}
-                      onChange={handleChange}
-                      className="mr-2 text-blue-500"
-                      required={formData.notificationPreferences.length === 0}
-                    />
-                    <label htmlFor={pref} className="text-gray-300">
-                      {pref}
-                    </label>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Language Preference */}
-            <div>
-              <label className="block text-gray-300 mb-2">
-                Language Preference *
-              </label>
-              <select
-                name="languagePreference"
-                value={formData.languagePreference}
-                onChange={handleChange}
-                className="w-full px-3 py-2 bg-gray-800 text-white border border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
-              >
-                <option value="">Select Language</option>
-                {languages.map((lang) => (
-                  <option key={lang} value={lang.toLowerCase()}>
-                    {lang}
-                  </option>
-                ))}
-              </select>
-            </div>
+    <div className="min-h-screen w-full bg-gradient-to-br from-[#1A2B3C] to-[#2C3E50] flex items-center justify-center p-4">
+      <div className="bg-white/10 backdrop-blur-lg border border-white/20 rounded-2xl shadow-2xl w-full max-w-5xl p-8">
+        {formSubmitted ? (
+          <div className="text-center text-white space-y-4">
+            <CheckCircle className="mx-auto text-green-400" size={64} />
+            <h2 className="text-3xl font-bold">Registration Successful!</h2>
+            <p className="text-gray-300">Your information has been securely submitted.</p>
           </div>
-
-          {/* Prescription Details Section */}
-          <div className="mt-6 bg-gray-800 p-4 rounded-md">
-            <h3 className="text-lg font-semibold text-white mb-4">
-              Prescription Details
-            </h3>
-
-            {/* Prescription Image Upload */}
-            <div className="mb-4">
-              <label className="block text-gray-300 mb-2">
-                Upload Prescription Image
-              </label>
-              <div 
-                className="border-2 border-dashed border-gray-700 rounded-lg p-4 text-center cursor-pointer hover:border-blue-500 transition duration-300"
-                onClick={() => fileInputRef.current.click()}
-              >
-                <input 
-                  type="file" 
-                  ref={fileInputRef}
-                  onChange={handlePrescriptionImageUpload}
-                  accept="image/jpeg,image/png,image/jpg,image/gif"
-                  className="hidden"
-                />
-                
-                {!formData.prescriptionImage ? (
-                  <div className="text-gray-400">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 mx-auto mb-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
-                    <p>Drag & Drop or Click to Upload Prescription</p>
-                    <p className="text-sm text-gray-500 mt-2">Supported formats: JPEG, PNG, JPG, GIF (Max 5MB)</p>
-                  </div>
-                ) : (
-                  <div className="relative">
-                    <img 
-                      src={formData.prescriptionImage.preview} 
-                      alt="Prescription Preview" 
-                      className="max-w-full max-h-64 mx-auto rounded-lg object-contain"
+        ) : (
+          <>
+            <h2 className="text-4xl font-bold text-white mb-6 text-center flex items-center justify-center gap-3">
+              <Info className="text-blue-400" size={36} />
+              Patient Registration Form
+            </h2>
+            
+            <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Personal Information Section */}
+              <div className="grid md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  {/* Full Name */}
+                  <div>
+                    <label className="block text-gray-200 mb-2 font-medium">
+                      Full Name
+                    </label>
+                    <input
+                      type="text"
+                      name="fullName"
+                      value={formData.fullName}
+                      onChange={handleChange}
+                      className={`w-full px-4 py-3 bg-white/10 text-white border rounded-xl focus:outline-none focus:ring-2 transition duration-300 ${
+                        formErrors.fullName 
+                          ? 'border-red-500 focus:ring-red-500' 
+                          : 'border-white/20 focus:ring-blue-500'
+                      }`}
+                      placeholder="Enter your full name"
                     />
+                    {formErrors.fullName && (
+                      <p className="text-red-400 text-sm mt-1 flex items-center">
+                        <AlertCircle size={16} className="mr-2" /> {formErrors.fullName}
+                      </p>
+                    )}
                   </div>
+
+                  {/* Email */}
+                  <div>
+                    <label className="block text-gray-200 mb-2 font-medium">
+                      Email Address
+                    </label>
+                    <input
+                      type="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleChange}
+                      className={`w-full px-4 py-3 bg-white/10 text-white border rounded-xl focus:outline-none focus:ring-2 transition duration-300 ${
+                        formErrors.email 
+                          ? 'border-red-500 focus:ring-red-500' 
+                          : 'border-white/20 focus:ring-blue-500'
+                      }`}
+                      placeholder="you@example.com"
+                    />
+                    {formErrors.email && (
+                      <p className="text-red-400 text-sm mt-1 flex items-center">
+                        <AlertCircle size={16} className="mr-2" /> {formErrors.email}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  {/* Phone Number */}
+                  <div>
+                    <label className="block text-gray-200 mb-2 font-medium">
+                      Phone Number
+                    </label>
+                    <input
+                      type="tel"
+                      name="phoneNumber"
+                      value={formData.phoneNumber}
+                      onChange={handleChange}
+                      className={`w-full px-4 py-3 bg-white/10 text-white border rounded-xl focus:outline-none focus:ring-2 transition duration-300 ${
+                        formErrors.phoneNumber 
+                          ? 'border-red-500 focus:ring-red-500' 
+                          : 'border-white/20 focus:ring-blue-500'
+                      }`}
+                      placeholder="+1 (123) 456-7890"
+                    />
+                    {formErrors.phoneNumber && (
+                      <p className="text-red-400 text-sm mt-1 flex items-center">
+                        <AlertCircle size={16} className="mr-2" /> {formErrors.phoneNumber}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Date of Birth */}
+                  <div>
+                    <label className="block text-gray-200 mb-2 font-medium">
+                      Date of Birth
+                    </label>
+                    <input
+                      type="date"
+                      name="dateOfBirth"
+                      value={formData.dateOfBirth}
+                      onChange={handleChange}
+                      className={`w-full px-4 py-3 bg-white/10 text-white border rounded-xl focus:outline-none focus:ring-2 transition duration-300 ${
+                        formErrors.dateOfBirth 
+                          ? 'border-red-500 focus:ring-red-500' 
+                          : 'border-white/20 focus:ring-blue-500'
+                      }`}
+                    />
+                    {formErrors.dateOfBirth && (
+                      <p className="text-red-400 text-sm mt-1 flex items-center">
+                        <AlertCircle size={16} className="mr-2" /> {formErrors.dateOfBirth}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Medical and Preference Details */}
+              <div className="grid md:grid-cols-2 gap-6 mt-6">
+                {/* Gender */}
+                <div>
+                  <label className="block text-gray-200 mb-2 font-medium">
+                    Gender
+                  </label>
+                  <select
+                    name="gender"
+                    value={formData.gender}
+                    onChange={handleChange}
+                    className={`w-full px-4 py-3 bg-white/10 text-white border rounded-xl focus:outline-none focus:ring-2 transition duration-300 ${
+                      formErrors.gender 
+                        ? 'border-red-500 focus:ring-red-500' 
+                        : 'border-white/20 focus:ring-blue-500'
+                    }`}
+                  >
+                    <option value="" className="bg-[#2C3E50]">Select Gender</option>
+                    <option value="male" className="bg-[#2C3E50]">Male</option>
+                    <option value="female" className="bg-[#2C3E50]">Female</option>
+                    <option value="other" className="bg-[#2C3E50]">Other</option>
+                  </select>
+                  {formErrors.gender && (
+                    <p className="text-red-400 text-sm mt-1 flex items-center">
+                      <AlertCircle size={16} className="mr-2" /> {formErrors.gender}
+                    </p>
+                  )}
+                </div>
+
+                {/* Allergies */}
+                <div>
+                  <label className="block text-gray-200 mb-2 font-medium">
+                    Allergies
+                  </label>
+                  <input
+                    type="text"
+                    name="allergies"
+                    value={formData.allergies}
+                    onChange={handleChange}
+                    placeholder="List any known allergies"
+                    className="w-full px-4 py-3 bg-white/10 text-white border border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-300"
+                  />
+                </div>
+
+                {/* Existing Medical Conditions */}
+                <div>
+                  <label className="block text-gray-200 mb-2 font-medium">
+                    Existing Medical Conditions
+                  </label>
+                  <div className="bg-white/10 p-4 rounded-xl max-h-48 overflow-y-auto border border-white/20">
+                    {medicalConditions.map((condition) => (
+                      <div key={condition} className="flex items-center mb-2">
+                        <input
+                          type="checkbox"
+                          id={condition}
+                          name="existingMedicalConditions"
+                          value={condition}
+                          checked={formData.existingMedicalConditions.includes(condition)}
+                          onChange={handleChange}
+                          className="mr-3 text-blue-500 bg-white/20 border-white/30 rounded"
+                        />
+                        <label htmlFor={condition} className="text-gray-300">
+                          {condition}
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Language Preference */}
+                <div>
+                  <label className="block text-gray-200 mb-2 font-medium">
+                    Language Preference
+                  </label>
+                  <select
+                    name="languagePreference"
+                    value={formData.languagePreference}
+                    onChange={handleChange}
+                    className={`w-full px-4 py-3 bg-white/10 text-white border rounded-xl focus:outline-none focus:ring-2 transition duration-300 ${
+                      formErrors.languagePreference 
+                        ? 'border-red-500 focus:ring-red-500' 
+                        : 'border-white/20 focus:ring-blue-500'
+                    }`}
+                  >
+                    <option value="" className="bg-[#2C3E50]">Select Language</option>
+                    {languages.map((lang) => (
+                      <option key={lang} value={lang.toLowerCase()} className="bg-[#2C3E50]">
+                        {lang}
+                      </option>
+                    ))}
+                  </select>
+                  {formErrors.languagePreference && (
+                    <p className="text-red-400 text-sm mt-1 flex items-center">
+                      <AlertCircle size={16} className="mr-2" /> {formErrors.languagePreference}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              {/* Notification Preferences */}
+              <div className="mt-6">
+                <label className="block text-gray-200 mb-2 font-medium">
+                  Notification Preferences
+                </label>
+                <div className="bg-white/10 p-4 rounded-xl border border-white/20 flex space-x-4">
+                  {['SMS', 'Email', 'App'].map((pref) => (
+                    <div key={pref} className="flex items-center">
+                      <input
+                        type="checkbox"
+                        id={pref}
+                        name="notificationPreferences"
+                        value={pref.toLowerCase()}
+                        checked={formData.notificationPreferences.includes(pref.toLowerCase())}
+                        onChange={handleChange}
+                        className="mr-2 text-blue-500 bg-white/20 border-white/30 rounded"
+                      />
+                      <label htmlFor={pref} className="text-gray-300">
+                        {pref}
+                      </label>
+                    </div>
+                  ))}
+                </div>
+                {formErrors.notificationPreferences && (
+                  <p className="text-red-400 text-sm mt-1 flex items-center">
+                    <AlertCircle size={16} className="mr-2" /> {formErrors.notificationPreferences}
+                  </p>
                 )}
               </div>
-            </div>
-          </div>
 
-          {/* Submit Button */}
-          <button
-            type="submit"
-            className="w-full bg-blue-600 text-black py-2 rounded-md hover:bg-blue-700 transition duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 mt-6"
-          >
-            Register & Save Prescription
-          </button>
-        </form>
+              {/* Prescription Upload */}
+              <div className="mt-6 bg-white/10 p-6 rounded-xl border border-white/20">
+                <div 
+                  className="border-2 border-dashed border-white/30 rounded-xl p-6 text-center cursor-pointer hover:border-blue-500 transition duration-300"
+                  onClick={() => fileInputRef.current.click()}
+                >
+                  <input 
+                    type="file" 
+                    ref={fileInputRef}
+                    onChange={handlePrescriptionImageUpload}
+                    accept="image/jpeg,image/png,image/jpg,image/gif"
+                    className="hidden"
+                  />
+                  
+                  {!formData.prescriptionImage ? (
+                    <div className="text-gray-400">
+                      <Upload className="mx-auto mb-4 text-white" size={48} />
+                      <p className="text-white font-medium">Upload Prescription</p>
+                      <p className="text-sm text-gray-400 mt-2">
+                        Drag & Drop or Click to Upload (Max 5MB)
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="relative">
+                      <img 
+                        src={formData.prescriptionImage.preview} 
+                        alt="Prescription Preview" 
+                        className="max-w-full max-h-64 mx-auto rounded-lg object-contain"
+                      />
+                      <button 
+                        type="button" 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setFormData(prev => ({...prev, prescriptionImage: null}));
+                        }}
+                        className="absolute top-2 right-2 bg-red-500/80 text-white p-2 rounded-full hover:bg-red-600 transition"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  )}
+                </div>
+                {formErrors.prescriptionImage && (
+                  <p className="text-red-400 text-sm mt-1 flex items-center">
+                    <AlertCircle size={16} className="mr-2" /> {formErrors.prescriptionImage}
+                  </p>
+                )}
+              </div>
+
+              {/* Submit Button */}
+              <button
+                type="submit"
+                className="w-full bg-blue-600 text-black py-3 rounded-xl hover:bg-blue-700 transition duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 mt-6 font-semibold text-lg"
+              >
+                Submit Registration
+              </button>
+            </form>
+          </>
+        )}
       </div>
     </div>
   );
 };
 
-export default Form;
+export default Form;
